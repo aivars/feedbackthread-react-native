@@ -1,0 +1,53 @@
+{
+  "name": "feedbackthread-react-native",
+  "version": "0.1.0-beta.1",
+  "description": "FeedbackThread feedback, voting, and shipped updates for React Native and Expo.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
+    "./core": { "types": "./dist/core/index.d.ts", "default": "./dist/core/index.js" },
+    "./expo": { "types": "./dist/expo.d.ts", "default": "./dist/expo.js" },
+    "./package.json": "./package.json"
+  },
+  "files": ["dist", "README.md", "CHANGELOG.md", "LICENSE", "docs"],
+  "sideEffects": false,
+  "engines": { "node": ">=22.13" },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test test/*.test.ts",
+    "test:ui": "jest --config jest.config.cjs --runInBand",
+    "test:worker": "npm run build && node scripts/test-worker.mjs",
+    "check": "npm run typecheck && npm test && npm run test:ui && npm run build",
+    "prepack": "npm run build"
+  },
+  "peerDependencies": {
+    "react": ">=19.2.0 <20",
+    "react-native": ">=0.83.0 <0.87.0",
+    "@react-native-async-storage/async-storage": ">=2.2.0 <4",
+    "expo-crypto": ">=15.0.0 <58"
+  },
+  "peerDependenciesMeta": {
+    "@react-native-async-storage/async-storage": { "optional": true },
+    "expo-crypto": { "optional": true }
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/react": "~19.2.3",
+    "@types/jest": "^30.0.0",
+    "@testing-library/react-native": "^14.0.1",
+    "test-renderer": "^1.0.0",
+    "expo": "~57.0.20",
+    "expo-crypto": "~57.0.0",
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "react": "19.2.3",
+    "react-native": "0.86.3",
+    "jest": "^30.0.0",
+    "jest-expo": "~57.0.5",
+    "tsx": "^4.20.0",
+    "typescript": "~6.0.3"
+  }
+}

@@ -1,0 +1,12 @@
+node_modules/
+dist/
+coverage/
+*.tgz
+.expo/
+example/ios/
+example/android/
+example/dist/
+.env
+.env.local
+artifacts/
+.DS_Store

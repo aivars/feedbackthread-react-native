@@ -1,0 +1,11 @@
+{
+  "expo": {
+    "name": "FeedbackThread SDK Demo",
+    "slug": "feedbackthread-sdk-demo",
+    "version": "1.0.0",
+    "orientation": "default",
+    "userInterfaceStyle": "automatic",
+    "ios": { "bundleIdentifier": "com.feedbackthread.sdkdemo", "supportsTablet": true },
+    "android": { "package": "com.feedbackthread.sdkdemo" }
+  }
+}
