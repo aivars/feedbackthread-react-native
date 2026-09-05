@@ -16,12 +16,14 @@ isolation, vote/unvote and shipped-update acknowledgement. The Workerd adapter
 maps fetch's `redirect: error` to `manual` (neither follows a redirect); this
 checks API semantics, not real mobile radio/TLS behavior.
 
-After changing SDK code, repack and reinstall the example's file dependency:
+After changing SDK code or packaged documentation, repack and refresh the
+example's file-dependency integrity before installing from its lockfile:
 
 ```sh
 npm pack
 cd example
-npm install --force
+npm install --package-lock-only --ignore-scripts ../feedbackthread-react-native-0.1.0-beta.1.tgz
+npm ci
 npx tsc --noEmit
 npx expo install --check
 npx expo export --platform ios --platform android
@@ -89,9 +91,18 @@ Expo Go or a development build. Use a dedicated test project for live submission
   rooted in uuid's buffer-bounds advisory (GHSA-w5hq-g745-h8pq). The SDK generates
   IDs with expo-crypto, not that uuid package. Do not apply the suggested forced
   downgrade to Expo 46; track upstream tooling patches before wider release.
-- Not verified: tester's Expo version, physical-device/live-project integration,
+- Not verified at this checkpoint: tester's Expo version, physical-device/live-project integration,
   real VPN/radio failures, full screen-reader/large-text matrix, standalone native
-  builds or earlier Expo versions. npm/GitHub publication has not occurred.
+  builds or earlier Expo versions. Publication had not occurred at this checkpoint.
 
-Maintainer next step: finish the physical tester pass, then approve public beta
-publication. Keep the product task In progress until that validation gap is closed.
+## Public beta — 2026-09-06
+
+The maintainer approved publishing this opt-in beta on GitHub with the gaps above
+explicitly documented. The [0.1.0-beta.1 prerelease](https://github.com/aivars/feedbackthread-react-native/releases/tag/0.1.0-beta.1)
+contains the built `.tgz` package; it is not an npm-registry or stable release.
+
+Next gate: the external tester completes physical-device/live-project testing,
+especially iOS text entry and submission, and reports their exact Expo version.
+Keep the product task In progress while this validation and the dashboard/site
+documentation rollout remain outstanding. Do not equate beta availability with
+production certification or mark a reporter notified merely because a release exists.

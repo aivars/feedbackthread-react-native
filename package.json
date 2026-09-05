@@ -3,6 +3,10 @@
   "version": "0.1.0-beta.1",
   "description": "FeedbackThread feedback, voting, and shipped updates for React Native and Expo.",
   "license": "MIT",
+  "repository": { "type": "git", "url": "https://github.com/aivars/feedbackthread-react-native.git" },
+  "homepage": "https://github.com/aivars/feedbackthread-react-native#readme",
+  "bugs": { "url": "https://github.com/aivars/feedbackthread-react-native/issues" },
+  "keywords": ["feedbackthread", "expo", "react-native", "feedback", "feature-requests", "ios", "android"],
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -12,7 +16,7 @@
     "./expo": { "types": "./dist/expo.d.ts", "default": "./dist/expo.js" },
     "./package.json": "./package.json"
   },
-  "files": ["dist", "README.md", "CHANGELOG.md", "LICENSE", "docs"],
+  "files": ["dist", "README.md", "CHANGELOG.md", "CONTRIBUTING.md", "LICENSE", "docs"],
   "sideEffects": false,
   "engines": { "node": ">=22.13" },
   "scripts": {

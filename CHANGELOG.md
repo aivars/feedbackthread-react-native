@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0-beta.1 — unreleased
+## 0.1.0-beta.1 — 2026-09-06
 
 - Initial React Native SDK and Expo adapter for iOS and Android.
 - Feature/bug submission, public request board, voting, personal requests and shipped updates.
@@ -8,4 +8,6 @@
 - Bounded networking with timeouts, cancellation, retries and submission idempotency.
 - Theme/string overrides and a credential-free Expo demo.
 
-This is a tester beta, not a stable or publicly published release.
+Public GitHub prerelease with an installable package asset. Not published to the
+npm registry. This is an opt-in tester beta, not a stable release; see
+[the verification record and known gaps](docs/BETA-TESTING.md).

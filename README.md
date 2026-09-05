@@ -1,26 +1,50 @@
 # FeedbackThread for React Native and Expo
 
+[![SDK checks](https://github.com/aivars/feedbackthread-react-native/actions/workflows/ci.yml/badge.svg)](https://github.com/aivars/feedbackthread-react-native/actions/workflows/ci.yml)
+[![GitHub beta](https://img.shields.io/badge/GitHub-0.1.0--beta.1-orange)](https://github.com/aivars/feedbackthread-react-native/releases/tag/0.1.0-beta.1)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 Bring feedback, feature voting and shipped updates into an iOS or Android app.
+
+## Features
+
+- Drop-in board with status filters, request details, voting and bug/feature forms.
+- My requests, shipped-version badges and explicit unread-update acknowledgement.
+- Persistent anonymous identity or isolated signed-in user scopes.
+- System light/dark themes, color overrides and customizable English strings.
+- A headless TypeScript client and an Expo Go-compatible adapter.
+
+## Requirements and beta status
+
 The first beta targets **Expo SDK 57 / React Native 0.86 / React 19.2**. It uses
 no custom native module or config plugin; the Expo adapter uses libraries
 available in Expo Go. Earlier versions permitted by peer ranges are not yet
-certified. Expo web is not supported in this beta.
+certified. Use Node 22.13+ for development. Expo web is not supported in this beta.
 
-## Install the local beta
+This is an **opt-in public beta, not a stable release**. Automated checks and
+production bundles pass on both platforms. Android emulator flows have been
+exercised; the complete iOS submission flow and physical-device/live-project
+integration still need tester validation. See the [verification record](docs/BETA-TESTING.md).
 
-The package is not published to npm yet. Obtain the beta tarball from the
-maintainer, then run these commands in your Expo app:
+## Installation
+
+Install the built package from the [GitHub prerelease](https://github.com/aivars/feedbackthread-react-native/releases/tag/0.1.0-beta.1),
+then let Expo choose compatible versions of the adapter's dependencies:
 
 ```sh
-npm install ./feedbackthread-react-native-0.1.0-beta.1.tgz
+npm install https://github.com/aivars/feedbackthread-react-native/releases/download/0.1.0-beta.1/feedbackthread-react-native-0.1.0-beta.1.tgz
 npx expo install @react-native-async-storage/async-storage expo-crypto
 ```
+
+This version is distributed on GitHub, **not the npm registry**. Use the named
+`.tgz` release asset, not GitHub's source-code archive or a Git dependency: those
+do not include the compiled package. Commit your app's lockfile to pin the beta.
 
 Use only the **public SDK project key** from FeedbackThread. Never put a
 developer/MCP token, App Store key or server secret into an app or an
 `EXPO_PUBLIC_*` variable.
 
-## Show the feedback board
+## Quickstart: show the feedback board
 
 ```tsx
 import { useMemo } from 'react';
@@ -44,6 +68,17 @@ parent. Pass `onClose` when presenting a modal, including the host `Modal`'s
 navigation; host route/gesture dismissal remains the host's responsibility.
 Do not construct a fresh client on every render: a new client deliberately
 clears the previous user's on-screen data and restarts screen loads.
+
+## Paying-customer signal
+
+Pass `customerTier: isPro ? 'paying' : 'free'` in the adapter options to attach
+your entitlement signal to submissions and votes. It helps prioritize feedback;
+it is not authentication and never gates SDK features. Omit it when unknown.
+If the tier changes, include it in your `useMemo` dependencies alongside the user
+ID. `appVersion` is also optional and must be supplied by your app in this SDK;
+the SDK does not read it from Expo configuration automatically.
+
+## Standalone surfaces and customization
 
 The board includes status filters, detail, vote/unvote, feature/bug forms and
 My requests. Standalone components are also exported:
@@ -153,6 +188,7 @@ npm ci
 npm run check
 npm pack
 cd example
+npm install --package-lock-only --ignore-scripts ../feedbackthread-react-native-0.1.0-beta.1.tgz
 npm ci
 npx expo start
 ```
@@ -172,3 +208,38 @@ FeedbackThread API errors.
 See [the beta checklist](docs/BETA-TESTING.md) for test coverage, limitations
 and release gates. Attachments, screenshots, comments, push notifications,
 identity merging and browser support are not included in this first beta.
+
+## How this fits your dashboard
+
+Create a project at [FeedbackThread](https://app.feedbackthread.com/) and copy
+its public key from **SDK setup**. New feedback goes to private triage first;
+publishing a card makes it eligible for the moderated platform board. The SDK
+does not edit workflow status or publish releases. Publishing a release in the
+dashboard supplies the shipped-version badges and updates for the caller's cards.
+
+| Dashboard status | Public board label |
+| --- | --- |
+| Submitted / Open | Not on the public board; visible to its submitter in My requests |
+| In review | In review |
+| Planned | Planned |
+| In progress / Ready to release | In progress |
+| Released | Completed, with the supplied shipped version |
+| Rejected | Not on the public board |
+
+Public visibility and platform targeting still apply. The SDK groups display
+labels without rewriting the server's status strings.
+
+## Contributing and reporting bugs
+
+This public repository is the SDK's development home, not a mirror. See
+[CONTRIBUTING.md](CONTRIBUTING.md) for local checks and pull requests. Report beta
+issues [on GitHub](https://github.com/aivars/feedbackthread-react-native/issues)
+with a minimal reproduction, platform and Expo versions, and sanitized logs.
+The [tester checklist](docs/BETA-TESTING.md) covers the remaining release gates.
+
+Native alternatives: [Swift SDK](https://github.com/aivars/feedbackthread-swift)
+and [Kotlin SDK](https://github.com/aivars/feedbackthread-android).
+
+## License
+
+[MIT](LICENSE) © Aivars Meijers.
