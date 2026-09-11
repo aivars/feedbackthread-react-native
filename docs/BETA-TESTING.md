@@ -1,6 +1,6 @@
 # Beta testing and release gates
 
-Version: 0.1.0-beta.1. Intended as an opt-in tester release, not stable production certification.
+Version: 0.1.0-beta.2. Intended as an opt-in tester release, not stable production certification.
 
 ## Automated checks
 
@@ -22,7 +22,7 @@ example's file-dependency integrity before installing from its lockfile:
 ```sh
 npm pack
 cd example
-npm install --package-lock-only --ignore-scripts ../feedbackthread-react-native-0.1.0-beta.1.tgz
+npm install --package-lock-only --ignore-scripts ../feedbackthread-react-native-0.1.0-beta.2.tgz
 npm ci
 npx tsc --noEmit
 npx expo install --check
@@ -106,3 +106,17 @@ especially iOS text entry and submission, and reports their exact Expo version.
 Keep the product task In progress while this validation and the dashboard/site
 documentation rollout remain outstanding. Do not equate beta availability with
 production certification or mark a reporter notified merely because a release exists.
+
+## Compatibility update — 2026-09-11
+
+Beta.2 adds typed project conversation-policy discovery; existing screens and
+identity behavior are unchanged. It does not add secure conversation sessions,
+conversation/comment UI or push delivery. Full conversation UI currently ships
+in the Swift SDK.
+
+Verified for beta.2: 18 client tests, 7 component tests, TypeScript declarations,
+the private local Worker contract (including settings, both platforms and the
+existing feedback/voting/update loop), and the tarball consumer's TypeScript,
+Expo dependency check and iOS/Android Hermes exports. Development/example Expo
+was updated to 57.0.21 after its checker recommended that patch. Existing beta
+native-device limitations above remain; no new native-device test is claimed.

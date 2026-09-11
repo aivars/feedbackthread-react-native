@@ -12,10 +12,10 @@
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
-    "expo": "~57.0.20",
+    "expo": "~57.0.21",
     "expo-crypto": "~57.0.2",
     "expo-status-bar": "~57.0.1",
-    "feedbackthread-react-native": "file:../feedbackthread-react-native-0.1.0-beta.1.tgz",
+    "feedbackthread-react-native": "file:../feedbackthread-react-native-0.1.0-beta.2.tgz",
     "react": "19.2.3",
     "react-native": "0.86.3",
     "react-native-safe-area-context": "~5.7.0"

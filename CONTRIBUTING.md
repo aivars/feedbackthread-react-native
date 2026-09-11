@@ -13,7 +13,7 @@ npm ci
 npm run check
 npm pack
 cd example
-npm install --package-lock-only --ignore-scripts ../feedbackthread-react-native-0.1.0-beta.1.tgz
+npm install --package-lock-only --ignore-scripts ../feedbackthread-react-native-0.1.0-beta.2.tgz
 npm ci
 npx tsc --noEmit
 npx expo install --check

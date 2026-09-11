@@ -18,7 +18,7 @@ jobs:
       - run: npm pack
       # The tarball changes when source or packaged docs change. Refresh only
       # this local package reference before the lockfile-based consumer install.
-      - run: npm install --package-lock-only --ignore-scripts ../feedbackthread-react-native-0.1.0-beta.1.tgz
+      - run: npm install --package-lock-only --ignore-scripts ../feedbackthread-react-native-0.1.0-beta.2.tgz
         working-directory: example
       - run: npm ci
         working-directory: example

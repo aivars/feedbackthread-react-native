@@ -3,6 +3,10 @@ import { expect, it } from 'vitest';
 import { FeedbackThreadClient } from "__SDK_CORE_IMPORT__";
 
 it('packaged Expo core speaks the actual Worker contract for both platforms', async () => {
+  // Legacy migration fixtures predate workspaces; conversations require an owner.
+  await env.DB.prepare(`INSERT INTO "user" (id,name,email,emailVerified,createdAt,updatedAt) VALUES ('expo-contract-owner','Expo fixture','expo-contract@example.test',1,0,0)`).run();
+  await env.DB.prepare(`INSERT INTO workspaces (id,owner_user_id,created_at) VALUES ('expo-contract-workspace','expo-contract-owner','2026-09-11T00:00:00Z')`).run();
+  await env.DB.prepare(`UPDATE projects SET workspace_id = 'expo-contract-workspace' WHERE id = 'PRJ-focuslock'`).run();
   const values = new Map<string, string>();
   const makeClient = (platform: 'ios' | 'android') => new FeedbackThreadClient({
     projectKey: 'loopline_focuslock_dev_2026', // documented local migration fixture
@@ -17,6 +21,9 @@ it('packaged Expo core speaks the actual Worker contract for both platforms', as
   });
   for (const platform of ['ios', 'android'] as const) {
     const client = makeClient(platform);
+    expect(await client.conversationSettings()).toEqual({
+      privateRepliesEnabled: true, notificationsEnabled: true, publicCommentsEnabled: false,
+    });
     const key = client.createSubmissionKey();
     const payload = { kind: 'Requests' as const, title: `Expo ${platform} feature`, text: 'Local contract test only.' };
     const result = await client.submit(payload, { idempotencyKey: key });

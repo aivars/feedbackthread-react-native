@@ -168,3 +168,21 @@ test('my requests/updates preserve private statuses and ack sends only supplied 
   await assert.rejects(c.acknowledgeUpdates([]), { code: 'validation' });
   await assert.rejects(c.acknowledgeUpdates(['bad/id']), { code: 'validation' });
 });
+
+test('conversation policy is typed and never treats external identity as a private credential', async () => {
+  const policy = { privateRepliesEnabled: true, notificationsEnabled: true, publicCommentsEnabled: false };
+  const c = client({ externalUserId: 'alice', fetch: async (url, init) => {
+    assert.equal(String(url), 'https://api.feedbackthread.com/v1/projects/test-public-key/chat/settings');
+    assert.equal(init?.method, 'GET');
+    assert.equal(new Headers(init?.headers).has('X-FeedbackThread-Customer'), false);
+    return Response.json(policy);
+  } });
+  assert.deepEqual(await c.conversationSettings(), policy);
+});
+
+test('malformed or missing conversation policy never silently enables features', async () => {
+  for (const response of [{}, { privateRepliesEnabled: true, notificationsEnabled: true }, { privateRepliesEnabled: true, notificationsEnabled: true, publicCommentsEnabled: 'false' }]) {
+    await assert.rejects(client({ fetch: async () => Response.json(response) }).conversationSettings(), { code: 'invalid_response' });
+  }
+  await assert.rejects(client({ fetch: async () => Response.json({ error: { code: 'not_found', message: 'Not available' } }, { status: 404 }) }).conversationSettings(), { status: 404 });
+});

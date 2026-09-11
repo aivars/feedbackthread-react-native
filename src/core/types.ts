@@ -79,3 +79,10 @@ export interface SubmitOptions extends CallOptions {
   /** Reuse this when retrying the same submission after an ambiguous failure. */
   idempotencyKey?: string;
 }
+
+/** Project policy; does not indicate SDK UI support, push setup, or device permission. */
+export interface ConversationSettings {
+  privateRepliesEnabled: boolean;
+  notificationsEnabled: boolean;
+  publicCommentsEnabled: boolean;
+}

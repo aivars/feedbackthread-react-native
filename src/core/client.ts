@@ -1,6 +1,6 @@
 import { FeedbackThreadError, cancelled } from './errors.js';
 import { resolveAnonymousIdentity, validateIdentity } from './identity.js';
-import type { CallOptions, FeedbackThreadClientOptions, MyRequestList, RequestList, Submission, SubmissionResult, SubmitOptions, UpdateList, VoteResult } from './types.js';
+import type { CallOptions, ConversationSettings, FeedbackThreadClientOptions, MyRequestList, RequestList, Submission, SubmissionResult, SubmitOptions, UpdateList, VoteResult } from './types.js';
 
 const TRANSIENT = new Set([408, 429, 500, 502, 503, 504]);
 let instanceSequence = 0;
@@ -100,6 +100,11 @@ export class FeedbackThreadClient {
 
   requests(options: CallOptions = {}): Promise<RequestList> {
     return this.read(`/requests?platform=${this.platform}`, options, (v) => record(v) && project(v.project) && v.platform === this.platform && Array.isArray(v.requests) && v.requests.every((r) => record(r) && isText(r.id) && isText(r.title) && isText(r.description) && isText(r.status) && isText(r.target) && isText(r.updatedAt) && count(r.votes) && typeof r.voted === 'boolean' && optionalText(r.shippedInVersion)));
+  }
+
+  /** Discover project policy without starting a private conversation session. */
+  conversationSettings(options: CallOptions = {}): Promise<ConversationSettings> {
+    return this.read('/chat/settings', options, (v) => record(v) && typeof v.privateRepliesEnabled === 'boolean' && typeof v.notificationsEnabled === 'boolean' && typeof v.publicCommentsEnabled === 'boolean');
   }
 
   myRequests(options: CallOptions = {}): Promise<MyRequestList> {

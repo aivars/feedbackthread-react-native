@@ -1,7 +1,7 @@
 # FeedbackThread for React Native and Expo
 
 [![SDK checks](https://github.com/aivars/feedbackthread-react-native/actions/workflows/ci.yml/badge.svg)](https://github.com/aivars/feedbackthread-react-native/actions/workflows/ci.yml)
-[![GitHub beta](https://img.shields.io/badge/GitHub-0.1.0--beta.1-orange)](https://github.com/aivars/feedbackthread-react-native/releases/tag/0.1.0-beta.1)
+[![GitHub beta](https://img.shields.io/badge/GitHub-0.1.0--beta.2-orange)](https://github.com/aivars/feedbackthread-react-native/releases/tag/0.1.0-beta.2)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 Bring feedback, feature voting and shipped updates into an iOS or Android app.
@@ -28,11 +28,11 @@ integration still need tester validation. See the [verification record](docs/BET
 
 ## Installation
 
-Install the built package from the [GitHub prerelease](https://github.com/aivars/feedbackthread-react-native/releases/tag/0.1.0-beta.1),
+Install the built package from the [GitHub prerelease](https://github.com/aivars/feedbackthread-react-native/releases/tag/0.1.0-beta.2),
 then let Expo choose compatible versions of the adapter's dependencies:
 
 ```sh
-npm install https://github.com/aivars/feedbackthread-react-native/releases/download/0.1.0-beta.1/feedbackthread-react-native-0.1.0-beta.1.tgz
+npm install https://github.com/aivars/feedbackthread-react-native/releases/download/0.1.0-beta.2/feedbackthread-react-native-0.1.0-beta.2.tgz
 npx expo install @react-native-async-storage/async-storage expo-crypto
 ```
 
@@ -188,7 +188,7 @@ npm ci
 npm run check
 npm pack
 cd example
-npm install --package-lock-only --ignore-scripts ../feedbackthread-react-native-0.1.0-beta.1.tgz
+npm install --package-lock-only --ignore-scripts ../feedbackthread-react-native-0.1.0-beta.2.tgz
 npm ci
 npx expo start
 ```
@@ -243,3 +243,18 @@ and [Kotlin SDK](https://github.com/aivars/feedbackthread-android).
 ## License
 
 [MIT](LICENSE) © Aivars Meijers.
+
+## Conversation service compatibility (beta.2)
+
+Existing integrations require no changes. `await client.conversationSettings()`
+returns typed project policy: `privateRepliesEnabled`, `notificationsEnabled`,
+and `publicCommentsEnabled`. Replies and notifications are enabled by the service;
+public comments default off and follow dashboard settings. No automatic requests
+are added to existing screens. Older servers without the endpoint return a 404
+`FeedbackThreadError`; missing or malformed flags produce `invalid_response`.
+
+These flags do not mean the device has notification permission or this SDK has
+conversation UI. Secure customer sessions, a message inbox, comment composers and
+native push routing are not included in this beta. Do not use `externalUserId` as
+a private conversation credential. Full conversation support is currently available
+in [Swift 0.5.0](https://github.com/aivars/feedbackthread-swift).
