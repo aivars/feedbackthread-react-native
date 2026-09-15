@@ -1,4 +1,13 @@
 export const englishStrings = {
+  replies: 'Replies', comments: 'Comments', newReply: 'New feedback reply',
+  privateAudience: 'Only you and the developer can read these replies.', publicAudience: 'These comments are visible to everyone who can access this request.',
+  commentsDisabled: 'Public comments are disabled. Private replies and voting remain available.',
+  replyPlaceholder: 'Reply to the developer…', commentPlaceholder: 'Write a public comment…',
+  sendReply: 'Send reply', postComment: 'Post comment', noMessages: 'No messages yet.',
+  mute: 'Mute notifications', notifyMe: 'Notify me', earlier: 'Load earlier messages',
+  you: 'You', developer: 'Developer', appUser: 'App user', read: 'Read', posted: 'Posted',
+  messageRemoved: 'Message removed', removeMessage: 'Remove message', cancel: 'Cancel',
+
   board: 'Feedback', boardTab: 'All requests', myRequests: 'My requests',
   subtitle: 'Help shape what comes next.', all: 'All', review: 'In review', planned: 'Planned',
   progress: 'In progress', completed: 'Completed', submitted: 'Waiting for review', rejected: 'Not planned',

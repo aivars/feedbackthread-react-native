@@ -258,3 +258,68 @@ conversation UI. Secure customer sessions, a message inbox, comment composers an
 native push routing are not included in this beta. Do not use `externalUserId` as
 a private conversation credential. Full conversation support is currently available
 in [Swift 0.5.0](https://github.com/aivars/feedbackthread-swift).
+
+## Replies and public comments (unreleased)
+
+The branch adds secure conversations to React Native and Expo. The APIs below
+require the matching server update and are not yet in the published beta.2.
+
+```tsx
+import * as SecureStore from 'expo-secure-store';
+import { createExpoFeedbackThreadClient, createExpoFeedbackThreadConversations } from 'feedbackthread-react-native/expo';
+import { FeedbackThreadConversationProvider, FeedbackThreadBoard } from 'feedbackthread-react-native';
+
+// Retain once per local host account, outside render (or in your app model).
+const client = createExpoFeedbackThreadClient({ projectKey: 'YOUR_PUBLIC_PROJECT_KEY' });
+const conversations = createExpoFeedbackThreadConversations(client, SecureStore, 'local-account-id');
+
+export function App() {
+  return <FeedbackThreadConversationProvider conversations={conversations}>
+    <FeedbackThreadBoard client={client} />
+  </FeedbackThreadConversationProvider>;
+}
+```
+
+Install SecureStore with `npx expo install expo-secure-store`. Private credentials
+never use AsyncStorage. For bare React Native, instantiate
+`FeedbackThreadConversations(client, credentialStore, accountScope)` with a
+Keychain/Keystore-backed `getItem`/`setItem`/`removeItem` adapter.
+
+The provider supplies the secure client to Board, My Requests and Feedback Form,
+manages foreground connections and unread banners, and presents conversations.
+Comments appear on board details when enabled; private Replies appear only on
+requests owned by this secure session. Keep the provider mounted above navigation.
+Existing requests remain visible without silently claiming their private threads.
+
+For custom UI, use `getSnapshot`/`subscribe` for inbox and unread state, `history`
+with `nextBefore` for pagination, `send` with a stable retry `clientId`, `markRead`,
+`follow`, `remove`, and `open`. `FeedbackThreadConversationView` is also exported.
+Mark messages read only after showing them. Strings and themes remain overridable.
+
+### Notifications in native builds
+
+The host owns permission prompts, notification channels and notification handling.
+Configure APNs for iOS and FCM for Android in the project's App discussions settings.
+With Expo Notifications, pass `await Notifications.getDevicePushTokenAsync()` to
+`registerExpoFeedbackThreadDevice(conversations, token)`. Use native device tokens,
+not an Expo push-service token. Forward notification-tap
+`response.notification.request.content.data` to `conversations.handleNotification`;
+also handle the initial notification response when starting from a terminated app.
+Re-register when the device token changes. Bare React Native can use
+`registerDevice(token, 'apns' | 'fcm')` directly.
+
+Use a physical device and a native development/release build to verify delivery.
+Expo Go is not a substitute for this release check. Notifications contain a generic
+alert; private text is fetched after authorization. In-app replies still work when
+notification permission is denied.
+
+### Account switching
+
+`accountScope` isolates local guest credentials; it does not verify your login or
+merge users across devices. Await `logout()` and create a manager for the next
+account. The old manager closes permanently and discards late private responses.
+If remote revocation fails, retain the old manager to retry logout; do not keep
+using its client. Local credentials are cleared on logout.
+
+Public comments default off. Disabling them hides retained discussion. Private
+replies remain enabled. Images, identity merging and browser support are deferred.

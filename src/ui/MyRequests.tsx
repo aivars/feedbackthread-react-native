@@ -1,3 +1,4 @@
+import { useConversations, useConversationState } from './Conversations.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { FlatList, Text, View } from 'react-native';
 import { Button, ErrorNotice, Loading, Status, styles, useResource, type SurfaceProps } from './shared.js';
@@ -9,10 +10,13 @@ export interface FeedbackThreadMyRequestsProps extends SurfaceProps {
 }
 
 export function FeedbackThreadMyRequests(props: FeedbackThreadMyRequestsProps) {
-  return <MyRequests key={props.client.instanceId} {...props} />;
+  const candidate = useConversations(props.conversations);
+  const conversations = candidate?.client.conversationNamespace === props.client.conversationNamespace ? candidate : undefined;
+  const client = conversations?.client ?? props.client;
+  return <MyRequests key={client.instanceId} {...props} client={client} conversations={conversations} />;
 }
 
-function MyRequests({ client, onClose, onError, onUnreadCountChange, theme: overrides, strings: labels }: FeedbackThreadMyRequestsProps) {
+function MyRequests({ conversations, client, onClose, onError, onUnreadCountChange, theme: overrides, strings: labels }: FeedbackThreadMyRequestsProps) {
   const theme = useFeedbackTheme(overrides);
   const strings = stringsFor(labels);
   const load = useCallback(async (signal: AbortSignal) => {
@@ -63,6 +67,7 @@ function MyRequests({ client, onClose, onError, onUnreadCountChange, theme: over
       ListEmptyComponent={resource.loading ? <Loading theme={theme} strings={strings} /> : resource.error ? null : <Text style={[styles.body, { color: theme.secondaryText }]}>{strings.emptyMine}</Text>}
       renderItem={({ item }) => <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
         <Text style={[styles.title, { color: theme.text }]}>{item.title}</Text>
+        {conversations && item.conversationAvailable ? <Button label={strings.replies} theme={theme} secondary onPress={() => conversations.open({ feedbackId: item.id, audience: 'private' })} /> : null}
         <Status status={item.status} version={item.shippedInVersion} theme={theme} strings={strings} />
       </View>} />
   </View>;

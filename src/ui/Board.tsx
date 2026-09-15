@@ -1,3 +1,4 @@
+import { useConversations, useConversationState } from './Conversations.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { FlatList, Pressable, ScrollView, Text, View } from 'react-native';
 import type { FeedbackKind, FeedbackRequest, RequestStage } from '../core/types.js';
@@ -14,11 +15,15 @@ export interface FeedbackThreadBoardProps extends SurfaceProps {
 type Route = { screen: 'board' } | { screen: 'detail'; id: string } | { screen: 'form'; kind: FeedbackKind };
 
 export function FeedbackThreadBoard(props: FeedbackThreadBoardProps) {
-  return <Board key={props.client.instanceId} {...props} />;
+  const candidate = useConversations(props.conversations);
+  const conversations = candidate?.client.conversationNamespace === props.client.conversationNamespace ? candidate : undefined;
+  const client = conversations?.client ?? props.client;
+  return <Board key={client.instanceId} {...props} client={client} conversations={conversations} />;
 }
 
 function Board(props: FeedbackThreadBoardProps) {
-  const { client, onClose, onError, onUnreadCountChange } = props;
+  const { client, onClose, onError, onUnreadCountChange, conversations } = props;
+  const discussion = useConversationState(conversations);
   const theme = useFeedbackTheme(props.theme);
   const strings = stringsFor(props.strings);
   const [route, setRoute] = useState<Route>({ screen: 'board' });
@@ -69,6 +74,7 @@ function Board(props: FeedbackThreadBoardProps) {
     <Text accessibilityRole="header" style={[styles.heading, { color: theme.text }]}>{selected.title}</Text>
     <Status status={selected.status} version={selected.shippedInVersion} strings={strings} theme={theme} />
     <Text selectable style={[styles.body, { color: theme.text }]}>{selected.description}</Text>
+    {conversations && discussion.settings?.publicCommentsEnabled ? <Button label={strings.comments} theme={theme} secondary onPress={() => conversations.open({ feedbackId: selected.id, audience: 'public' })} /> : null}
     <ErrorNotice error={voteError} strings={strings} theme={theme} />
     <Button label={`${selected.voted ? strings.removeVote : strings.vote} · ${selected.votes}`} theme={theme} secondary={selected.voted} disabled={voting.has(selected.id)} onPress={() => void vote(selected)} />
   </ScrollView>;

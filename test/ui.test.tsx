@@ -126,3 +126,34 @@ it('Android Back navigates inner routes and cannot discard an in-flight form', a
     expect(screen.getByText('All requests')).toBeTruthy();
   } finally { listener.mockRestore(); }
 });
+
+import { FeedbackThreadConversations } from '../src/core/conversations.js';
+import { FeedbackThreadConversationView } from '../src/ui/Conversations.js';
+function conversations(transport: typeof fetch) {
+  return new FeedbackThreadConversations(client(transport),{async getItem(){return JSON.stringify({customerId:'guest',externalUserId:'ft-guest:guest',token:'a'.repeat(72)})},async setItem(){},async removeItem(){}});
+}
+it('sends a private reply through the conversation screen and clears the composer only after success',async()=>{
+  const sent: {body:string;clientId:string}[]=[];
+  const manager=conversations(async(url,init)=>{
+    if(String(url).endsWith('/messages')) {sent.push(JSON.parse(String(init?.body)));return Response.json({id:'message-id'});}
+    if(String(url).endsWith('/settings'))return Response.json({publicCommentsEnabled:false,privateRepliesEnabled:true,notificationsEnabled:true});
+    if(String(url).endsWith('/inbox'))return Response.json({conversations:[],unreadCount:0});
+    return Response.json({thread:{id:'thread',audience:'private',status:'waiting'},messages:[],unreadCount:0,following:true,hasMore:false,nextBefore:null,otherReadSeq:null});
+  });
+  await render(<FeedbackThreadConversationView client={manager.client} conversations={manager} route={{feedbackId:item.id,audience:'private'}} />);
+  expect(await screen.findByText('No messages yet.')).toBeTruthy();
+  await fireEvent.changeText(screen.getByLabelText('Reply to the developer…'), 'Private reply');
+  await fireEvent.press(screen.getByText('Send reply'));
+  await waitFor(()=>expect(sent).toHaveLength(1));
+  expect(sent[0]?.body).toBe('Private reply');
+  await waitFor(()=>expect(screen.getByLabelText('Reply to the developer…').props.value).toBe(''));
+});
+it('hides the public composer when project comments are disabled',async()=>{
+  const manager=conversations(async(url)=> String(url).endsWith('/settings')
+    ?Response.json({publicCommentsEnabled:false,privateRepliesEnabled:true,notificationsEnabled:true})
+    :Response.json({conversations:[],unreadCount:0}));
+  await manager.refresh();
+  await render(<FeedbackThreadConversationView client={manager.client} conversations={manager} route={{feedbackId:item.id,audience:'public'}} />);
+  expect(screen.queryByText('Post comment')).toBeNull();
+  expect(screen.getByText('Public comments are disabled. Private replies and voting remain available.')).toBeTruthy();
+});

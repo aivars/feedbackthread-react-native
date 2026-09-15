@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Add secure conversations, a provider and reply/comment screens, live unread state, pagination, read markers, follow/mute and removal.
+- Add an Expo SecureStore adapter and native APNs/FCM registration helper.
+- Preserve legacy requests and isolate accounts; revoke and close sessions on logout.
+- Existing released beta.2 remains unchanged until this branch is published.
+
 ## 0.1.0-beta.2 — 2026-09-11
 
 - Add typed `conversationSettings()` discovery for project reply, notification and public-comment policy.

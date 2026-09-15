@@ -1,3 +1,4 @@
+import type { CustomerSession } from './conversations.js';
 import { FeedbackThreadError, cancelled } from './errors.js';
 import { resolveAnonymousIdentity, validateIdentity } from './identity.js';
 import type { CallOptions, ConversationSettings, FeedbackThreadClientOptions, MyRequestList, RequestList, Submission, SubmissionResult, SubmitOptions, UpdateList, VoteResult } from './types.js';
@@ -61,6 +62,17 @@ export class FeedbackThreadClient {
   private readonly transport: typeof globalThis.fetch;
   private readonly timeout: number;
   private readonly retries: number;
+  private sessionProvider?: () => Promise<CustomerSession>;
+  private legacyClient?: FeedbackThreadClient;
+  get conversationOrigin(): string { return this.baseUrl; }
+  get conversationNamespace(): string { return `${this.baseUrl}:${this.options.projectKey}`; }
+  withCustomerSession(provider: () => Promise<CustomerSession>): FeedbackThreadClient {
+    const client = new FeedbackThreadClient(this.options); client.sessionProvider = provider; client.legacyClient = this; return client;
+  }
+  conversationRequest<T>(path: string, method = "GET", payload?: unknown, options: CallOptions = {}): Promise<T> {
+    if (!path.startsWith("/chat/")) throw new FeedbackThreadError("Invalid conversation path.", "validation");
+    return this.request(path, method, payload, options);
+  }
   private readonly reads = new Map<string, Promise<unknown>>();
 
   constructor(options: FeedbackThreadClientOptions) {
@@ -107,11 +119,28 @@ export class FeedbackThreadClient {
     return this.read('/chat/settings', options, (v) => record(v) && typeof v.privateRepliesEnabled === 'boolean' && typeof v.notificationsEnabled === 'boolean' && typeof v.publicCommentsEnabled === 'boolean');
   }
 
-  myRequests(options: CallOptions = {}): Promise<MyRequestList> {
+  async myRequests(options: CallOptions = {}): Promise<MyRequestList> {
+    const current = await this.ownRequests(options);
+    if (!this.legacyClient) return current;
+    const legacy = await this.legacyClient.myRequests(options);
+    const merged = new Map(legacy.requests.map(r => [r.id, { ...r, conversationAvailable: false }]));
+    for (const item of current.requests) merged.set(item.id, { ...item, conversationAvailable: item.conversationAvailable === true });
+    return { ...current, requests: [...merged.values()].sort((a,b) => b.createdAt.localeCompare(a.createdAt)) };
+  }
+  private ownRequests(options: CallOptions): Promise<MyRequestList> {
     return this.read('/my/requests', options, (v) => record(v) && project(v.project) && Array.isArray(v.requests) && v.requests.every((r) => record(r) && isText(r.id) && isText(r.title) && isText(r.status) && isText(r.createdAt) && count(r.voteCount) && optionalText(r.shippedInVersion)));
   }
 
-  myUpdates(options: CallOptions = {}): Promise<UpdateList> {
+  async myUpdates(options: CallOptions = {}): Promise<UpdateList> {
+    const current = await this.ownUpdates(options);
+    if (!this.legacyClient) return current;
+    const legacy = await this.legacyClient.myUpdates(options);
+    const merged = new Map(legacy.updates.map(r => [r.id, r]));
+    const overlap = current.updates.filter(r => merged.has(r.id)).length;
+    for (const item of current.updates) merged.set(item.id, item);
+    return { ...current, updates: [...merged.values()], unreadCount: current.unreadCount + legacy.unreadCount - overlap };
+  }
+  private ownUpdates(options: CallOptions): Promise<UpdateList> {
     return this.read('/my/updates', options, (v) => record(v) && project(v.project) && count(v.unreadCount) && Array.isArray(v.updates) && v.updates.every((r) => record(r) && isText(r.id) && isText(r.title) && isText(r.shippedVersion) && isText(r.publishedAt)));
   }
 
@@ -145,6 +174,7 @@ export class FeedbackThreadClient {
     ids.forEach(feedbackId);
     const result = await this.request<{ unreadCount: number }>('/my/updates/ack', 'POST', { feedbackIds: [...new Set(ids)] }, options);
     if (!record(result) || !count(result.unreadCount)) throw this.invalidResponse();
+    if (this.legacyClient) { await this.legacyClient.acknowledgeUpdates(ids, options); return { unreadCount: (await this.myUpdates(options)).unreadCount }; }
     return result;
   }
 
@@ -171,7 +201,8 @@ export class FeedbackThreadClient {
 
   private async request<T>(path: string, method: string, payload: unknown, options: CallOptions, extraHeaders: Record<string, string> = {}): Promise<T> {
     if (options.signal?.aborted) throw cancelled();
-    const identity = await this.identity();
+    const session = await this.sessionProvider?.();
+    const identity = session?.externalUserId ?? await this.identity();
     const body = payload === undefined ? undefined : JSON.stringify(payload);
     for (let attempt = 0; ; attempt += 1) {
       if (options.signal?.aborted) throw cancelled();
@@ -184,7 +215,7 @@ export class FeedbackThreadClient {
       try {
         const response = await abortable(this.transport(`${this.endpoint}${path}`, {
           method,
-          headers: { Accept: 'application/json', 'X-FeedbackThread-User': identity, ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}), ...extraHeaders },
+          headers: { Accept: 'application/json', 'X-FeedbackThread-User': identity, ...(session ? { 'X-FeedbackThread-Customer': session.token } : {}), ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}), ...extraHeaders },
           body,
           signal: controller.signal,
           // Ask the host transport to reject redirects.
@@ -201,8 +232,11 @@ export class FeedbackThreadClient {
             isText(apiError?.code) ? apiError.code : 'http_error', response.status, retryable, retryAfter(response),
           );
         }
-        try { return await abortable(response.json(), controller.signal) as T; }
+        let result: T;
+        try { result = await abortable(response.json(), controller.signal) as T; }
         catch (cause) { if (controller.signal.aborted) throw cause; throw this.invalidResponse(); }
+        if (session && (await this.sessionProvider?.())?.token !== session.token) throw cancelled();
+        return result;
       } catch (cause) {
         if (options.signal?.aborted) throw cancelled();
         error = timedOut
@@ -215,7 +249,7 @@ export class FeedbackThreadClient {
       }
       // Respect long Retry-After values by returning control instead of
       // retrying early or keeping a mobile screen waiting indefinitely.
-      if (!error.retryable || attempt >= this.retries || (error.retryAfterMs ?? 0) > 5_000) throw error;
+      if ((path === '/chat/session' && method === 'POST') || !error.retryable || attempt >= this.retries || (error.retryAfterMs ?? 0) > 5_000) throw error;
       await delay(error.retryAfterMs ?? 300 * 2 ** attempt, options.signal);
     }
   }
