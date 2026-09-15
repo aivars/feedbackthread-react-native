@@ -1,7 +1,7 @@
 # FeedbackThread for React Native and Expo
 
 [![SDK checks](https://github.com/aivars/feedbackthread-react-native/actions/workflows/ci.yml/badge.svg)](https://github.com/aivars/feedbackthread-react-native/actions/workflows/ci.yml)
-[![GitHub beta](https://img.shields.io/badge/GitHub-0.1.0--beta.2-orange)](https://github.com/aivars/feedbackthread-react-native/releases/tag/0.1.0-beta.2)
+[![GitHub beta](https://img.shields.io/badge/GitHub-0.1.0--beta.3-orange)](https://github.com/aivars/feedbackthread-react-native/releases/tag/0.1.0-beta.3)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 Bring feedback, feature voting and shipped updates into an iOS or Android app.
@@ -28,11 +28,11 @@ integration still need tester validation. See the [verification record](docs/BET
 
 ## Installation
 
-Install the built package from the [GitHub prerelease](https://github.com/aivars/feedbackthread-react-native/releases/tag/0.1.0-beta.2),
+Install the built package from the [GitHub prerelease](https://github.com/aivars/feedbackthread-react-native/releases/tag/0.1.0-beta.3),
 then let Expo choose compatible versions of the adapter's dependencies:
 
 ```sh
-npm install https://github.com/aivars/feedbackthread-react-native/releases/download/0.1.0-beta.2/feedbackthread-react-native-0.1.0-beta.2.tgz
+npm install https://github.com/aivars/feedbackthread-react-native/releases/download/0.1.0-beta.3/feedbackthread-react-native-0.1.0-beta.3.tgz
 npx expo install @react-native-async-storage/async-storage expo-crypto
 ```
 
@@ -188,7 +188,7 @@ npm ci
 npm run check
 npm pack
 cd example
-npm install --package-lock-only --ignore-scripts ../feedbackthread-react-native-0.1.0-beta.2.tgz
+npm install --package-lock-only --ignore-scripts ../feedbackthread-react-native-0.1.0-beta.3.tgz
 npm ci
 npx expo start
 ```
@@ -206,8 +206,8 @@ This fixes local simulator/Metro connectivity; it is unrelated to production
 FeedbackThread API errors.
 
 See [the beta checklist](docs/BETA-TESTING.md) for test coverage, limitations
-and release gates. Attachments, screenshots, comments, push notifications,
-identity merging and browser support are not included in this first beta.
+and release gates. Attachments, screenshots, identity merging and browser support are not included.
+Comments and native push adapters are available through the conversation integration below.
 
 ## How this fits your dashboard
 
@@ -253,8 +253,71 @@ public comments default off and follow dashboard settings. No automatic requests
 are added to existing screens. Older servers without the endpoint return a 404
 `FeedbackThreadError`; missing or malformed flags produce `invalid_response`.
 
-These flags do not mean the device has notification permission or this SDK has
-conversation UI. Secure customer sessions, a message inbox, comment composers and
-native push routing are not included in this beta. Do not use `externalUserId` as
-a private conversation credential. Full conversation support is currently available
-in [Swift 0.5.0](https://github.com/aivars/feedbackthread-swift).
+Project policy does not grant device notification permission. Do not use
+`externalUserId` as a private conversation credential.
+
+## Replies and public comments (beta.3)
+
+Beta.3 adds secure conversations to React Native and Expo. These APIs require the
+FeedbackThread server update released on 2026-09-15. Physical-device conversation
+flows and native push delivery still require host-app verification.
+
+```tsx
+import * as SecureStore from 'expo-secure-store';
+import { createExpoFeedbackThreadClient, createExpoFeedbackThreadConversations } from 'feedbackthread-react-native/expo';
+import { FeedbackThreadConversationProvider, FeedbackThreadBoard } from 'feedbackthread-react-native';
+
+// Retain once per local host account, outside render (or in your app model).
+const client = createExpoFeedbackThreadClient({ projectKey: 'YOUR_PUBLIC_PROJECT_KEY' });
+const conversations = createExpoFeedbackThreadConversations(client, SecureStore, 'local-account-id');
+
+export function App() {
+  return <FeedbackThreadConversationProvider conversations={conversations}>
+    <FeedbackThreadBoard client={client} />
+  </FeedbackThreadConversationProvider>;
+}
+```
+
+Install SecureStore with `npx expo install expo-secure-store`. Private credentials
+never use AsyncStorage. For bare React Native, instantiate
+`FeedbackThreadConversations(client, credentialStore, accountScope)` with a
+Keychain/Keystore-backed `getItem`/`setItem`/`removeItem` adapter.
+
+The provider supplies the secure client to Board, My Requests and Feedback Form,
+manages foreground connections and unread banners, and presents conversations.
+Comments appear on board details when enabled; private Replies appear only on
+requests owned by this secure session. Keep the provider mounted above navigation.
+Existing requests remain visible without silently claiming their private threads.
+
+For custom UI, use `getSnapshot`/`subscribe` for inbox and unread state, `history`
+with `nextBefore` for pagination, `send` with a stable retry `clientId`, `markRead`,
+`follow`, `remove`, and `open`. `FeedbackThreadConversationView` is also exported.
+Mark messages read only after showing them. Strings and themes remain overridable.
+
+### Notifications in native builds
+
+The host owns permission prompts, notification channels and notification handling.
+Configure APNs for iOS and FCM for Android in the project's App discussions settings.
+With Expo Notifications, pass `await Notifications.getDevicePushTokenAsync()` to
+`registerExpoFeedbackThreadDevice(conversations, token)`. Use native device tokens,
+not an Expo push-service token. Forward notification-tap
+`response.notification.request.content.data` to `conversations.handleNotification`;
+also handle the initial notification response when starting from a terminated app.
+Re-register when the device token changes. Bare React Native can use
+`registerDevice(token, 'apns' | 'fcm')` directly.
+
+Use a physical device and a native development/release build to verify delivery.
+Expo Go is not a substitute for this release check. Notifications contain a generic
+alert; private text is fetched after authorization. In-app replies still work when
+notification permission is denied.
+
+### Account switching
+
+`accountScope` isolates local guest credentials; it does not verify your login or
+merge users across devices. Await `logout()` and create a manager for the next
+account. The old manager closes permanently and discards late private responses.
+If remote revocation fails, retain the old manager to retry logout; do not keep
+using its client. Local credentials are cleared on logout.
+
+Public comments default off. Disabling them hides retained discussion. Private
+replies remain enabled. Images, identity merging and browser support are deferred.

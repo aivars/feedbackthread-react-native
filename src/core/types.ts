@@ -16,6 +16,7 @@ export interface FeedbackRequest {
 }
 
 export interface MyRequest {
+  conversationAvailable?: boolean;
   id: string;
   title: string;
   status: string;

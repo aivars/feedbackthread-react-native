@@ -4,3 +4,5 @@ export { FeedbackThreadFeedbackForm, type FeedbackThreadFeedbackFormProps } from
 export { FeedbackThreadMyRequests, type FeedbackThreadMyRequestsProps } from './ui/MyRequests.js';
 export { englishStrings, type FeedbackThreadStrings } from './ui/strings.js';
 export type { FeedbackThreadTheme } from './ui/theme.js';
+
+export { FeedbackThreadConversationProvider, FeedbackThreadConversationView } from './ui/Conversations.js';

@@ -1,3 +1,4 @@
+import { useConversations, useConversationState } from './Conversations.js';
 import { useEffect, useRef, useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, View } from 'react-native';
 import type { FeedbackKind, Submission, SubmissionResult } from '../core/types.js';
@@ -12,6 +13,9 @@ export interface FeedbackThreadFeedbackFormProps extends SurfaceProps {
 }
 
 export function FeedbackThreadFeedbackForm(props: FeedbackThreadFeedbackFormProps) {
+  const candidate = useConversations(props.conversations);
+  const conversations = candidate?.client.conversationNamespace === props.client.conversationNamespace ? candidate : undefined;
+  const client = conversations?.client ?? props.client;
   return <FeedbackForm key={`${props.client.instanceId}:${props.kind ?? 'Requests'}`} {...props} />;
 }
 

@@ -8,6 +8,7 @@ import type { FeedbackThreadTheme } from './theme.js';
 
 export interface SurfaceProps {
   client: FeedbackThreadClient;
+  conversations?: import("../core/conversations.js").FeedbackThreadConversations;
   theme?: Partial<FeedbackThreadTheme>;
   strings?: Partial<FeedbackThreadStrings>;
   onClose?: () => void;
