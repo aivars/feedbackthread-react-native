@@ -1,11 +1,12 @@
 # Changelog
 
-## Unreleased
+## 0.1.0-beta.3 — 2026-09-15
 
 - Add secure conversations, a provider and reply/comment screens, live unread state, pagination, read markers, follow/mute and removal.
 - Add an Expo SecureStore adapter and native APNs/FCM registration helper.
 - Preserve legacy requests and isolate accounts; revoke and close sessions on logout.
-- Existing released beta.2 remains unchanged until this branch is published.
+- Update development/example Expo to 57.0.22 and expo-crypto to 57.0.3 for current compatibility checks.
+- Opt-in GitHub beta. Physical-device conversation and APNs/FCM delivery validation remains outstanding; host apps must verify their integration before rollout.
 
 ## 0.1.0-beta.2 — 2026-09-11
 

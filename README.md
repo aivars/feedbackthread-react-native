@@ -1,7 +1,7 @@
 # FeedbackThread for React Native and Expo
 
 [![SDK checks](https://github.com/aivars/feedbackthread-react-native/actions/workflows/ci.yml/badge.svg)](https://github.com/aivars/feedbackthread-react-native/actions/workflows/ci.yml)
-[![GitHub beta](https://img.shields.io/badge/GitHub-0.1.0--beta.2-orange)](https://github.com/aivars/feedbackthread-react-native/releases/tag/0.1.0-beta.2)
+[![GitHub beta](https://img.shields.io/badge/GitHub-0.1.0--beta.3-orange)](https://github.com/aivars/feedbackthread-react-native/releases/tag/0.1.0-beta.3)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 Bring feedback, feature voting and shipped updates into an iOS or Android app.
@@ -28,11 +28,11 @@ integration still need tester validation. See the [verification record](docs/BET
 
 ## Installation
 
-Install the built package from the [GitHub prerelease](https://github.com/aivars/feedbackthread-react-native/releases/tag/0.1.0-beta.2),
+Install the built package from the [GitHub prerelease](https://github.com/aivars/feedbackthread-react-native/releases/tag/0.1.0-beta.3),
 then let Expo choose compatible versions of the adapter's dependencies:
 
 ```sh
-npm install https://github.com/aivars/feedbackthread-react-native/releases/download/0.1.0-beta.2/feedbackthread-react-native-0.1.0-beta.2.tgz
+npm install https://github.com/aivars/feedbackthread-react-native/releases/download/0.1.0-beta.3/feedbackthread-react-native-0.1.0-beta.3.tgz
 npx expo install @react-native-async-storage/async-storage expo-crypto
 ```
 
@@ -188,7 +188,7 @@ npm ci
 npm run check
 npm pack
 cd example
-npm install --package-lock-only --ignore-scripts ../feedbackthread-react-native-0.1.0-beta.2.tgz
+npm install --package-lock-only --ignore-scripts ../feedbackthread-react-native-0.1.0-beta.3.tgz
 npm ci
 npx expo start
 ```
@@ -206,8 +206,8 @@ This fixes local simulator/Metro connectivity; it is unrelated to production
 FeedbackThread API errors.
 
 See [the beta checklist](docs/BETA-TESTING.md) for test coverage, limitations
-and release gates. Attachments, screenshots, comments, push notifications,
-identity merging and browser support are not included in this first beta.
+and release gates. Attachments, screenshots, identity merging and browser support are not included.
+Comments and native push adapters are available through the conversation integration below.
 
 ## How this fits your dashboard
 
@@ -253,16 +253,14 @@ public comments default off and follow dashboard settings. No automatic requests
 are added to existing screens. Older servers without the endpoint return a 404
 `FeedbackThreadError`; missing or malformed flags produce `invalid_response`.
 
-These flags do not mean the device has notification permission or this SDK has
-conversation UI. Secure customer sessions, a message inbox, comment composers and
-native push routing are not included in this beta. Do not use `externalUserId` as
-a private conversation credential. Full conversation support is currently available
-in [Swift 0.5.0](https://github.com/aivars/feedbackthread-swift).
+Project policy does not grant device notification permission. Do not use
+`externalUserId` as a private conversation credential.
 
-## Replies and public comments (unreleased)
+## Replies and public comments (beta.3)
 
-The branch adds secure conversations to React Native and Expo. The APIs below
-require the matching server update and are not yet in the published beta.2.
+Beta.3 adds secure conversations to React Native and Expo. These APIs require the
+FeedbackThread server update released on 2026-09-15. Physical-device conversation
+flows and native push delivery still require host-app verification.
 
 ```tsx
 import * as SecureStore from 'expo-secure-store';
